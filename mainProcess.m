@@ -53,32 +53,32 @@ sp = 1;
 % generate X
 x = zeros(N,1);
 x(1) = sqrt(5)*randn(1);
-rho = 0.98;
+rho = 0.9;
 for pp = 2:N
    x(pp) = sqrt(5)*randn(1)-rho*x(pp-1);
 end
 x = sqrt(sp)*x;
-%h = [1 0.2 6 -3];   % This are to be estimated
-%d = conv(x,h);
-%d = d(1:N) + sqrt(np).*randn(1,N); % noisy target :: OUTPUT
+h = [1 -0.8 6 3];   % These are to be estimated
+d = conv(x,h);
+d = d(1:N) + sqrt(np).*randn(1,N); % noisy target :: OUTPUT
 
 %%
 option = 'Simple';
 sz = length(h); %no of taps
 mu = 0.004;
-[y1,w0,w1,w2,e] = computeLMS(x,d,mu,sz,N,option);
+[y1,W,e] = computeLMS(x,d,mu,sz,N,option);
 
 %%
 option = 'DCT';
 sz = 3; %no of taps
 mu = 0.004;
-[y1dct,w0dct,w1dct,w2dct,edct] = computeLMS(x,d,mu,sz,N,option);
+[y1dct,W,edct] = computeLMS(x,d,mu,sz,N,option);
 
 %% 
 option = 'DCT';
 sz = 3; %no of taps
 mu = 0.004;
-[y1dct,w0dct,w1dct,w2dct,edct] = computeLMS(x,d,mu,sz,N,option);
+[y1dct,W,edct] = computeLMS(x,d,mu,sz,N,option);
 
 
 %%
@@ -92,7 +92,7 @@ mu = 0.004;
 sz = length(h); %no of taps
 mu = 0.004;
 iter = 100;
-[y1pcg,w0pcg,w1pcg,w2pcg,epcg, U_opt, cnd] = computePrecoGLMS(x,d,mu,sz,N,iter);
+[y1pcg, Wpcg ,epcg, U_opt, cnd] = computePrecoGLMS(x,d,mu,sz,N,iter);
 
 
 %%_______________________________________%%
@@ -144,51 +144,7 @@ iter = 120;
 
 
 
-%% _____________________________ %%
-%% ________________ GARCH ___________________%%
 
-clc
-clear all
-
-%%
-N = 2000;
-mdl = garch('Constant',0.001,'GARCH',0.75,'ARCH',0.1,'Offset',0.5);
-x = simulate(mdl,N,'NumPaths',1);
-x = x*100;
-x = x-mean(x);
-%%
-np=0.01;
-sp = 1;
-x = sqrt(sp)*x;
-h = [1 0.1 7];   % This are to be estimated
-d = conv(x,h);
-d = d(1:N) + sqrt(np).*randn(N,1); % noisy target :: OUTPUT
-
-%%
-option = 'Simple';
-mu = 0.4;
-sz = 3; %no of taps
-[y1,w0,w1,w2,e] = computeLMS(x,d,mu,sz,N,option);
-figure, plot(1:2000,w0,'--r',1:2000,w1,'g',1:2000,w2,'--b')
-%%
-option = 'Ideal';
-sz = 3; %no of taps
-mu = 0.002;
-[y1ideal,w0ideal,w1ideal,w2ideal,eideal] = computeLMS(x,d,mu,sz,N,option);
-figure, plot(1:2000,w0ideal,'--r',1:2000,w1ideal,'g',1:2000,w2ideal,'--b')
-%% DCT
-option = 'DCT';
-sz = 3; %no of taps
-mu = 0.01;
-[y1dct,w0dct,w1dct,w2dct,edct] = computeLMS(x,d,mu,sz,N,option);
-figure, plot(1:2000,w0dct,'--r',1:2000,w1dct,'g',1:2000,w2dct,'--b')
-
-%% PrecoG
-sz = 3; %no of taps
-mu = 0.002;
-iter = 100;
-[y1pcg,w0pcg,w1pcg,w2pcg,epcg] = computePrecoGLMS(x,d,mu,sz,N,iter);
-figure, plot(1:2000,w0pcg,'--r',1:2000,w1pcg,'g',1:2000,w2pcg,'--b')
 
 
 
@@ -205,19 +161,6 @@ clear all
 N = 1500;
 np=0.01;
 sp = 1;
-
-% generate X
-x = zeros(N,1);
-x(1) = 1.5*randn(1)+2;
-rho = 0.9;
-for pp = 2:N
-   x(pp) = randn(1)-rho*x(pp-1);
-end
-x = sqrt(sp)*x;
-% h = [1 0.2 6 -3];   % This are to be estimated
-% d = conv(x,h);
-% d = d(1:N) + sqrt(np).*randn(1,N); % noisy target :: OUTPUT
-
 
 %%
 clc
@@ -270,14 +213,4 @@ for kk = 1:500
     Wi = W;
 end
 %% _________________________%%
-
-%% _ Hebb-LMS on IRIS data _ for next paper
-%% Iris
-clc 
-clear all
-%%
-[v1,v2,v3,v4,nm] = textread('Iris.txt','%f %f %f %f %s','delimiter',',');
-
-x = [v1(1:100,1) v2(1:100,1) v3(1:100,1) v4(1:100,1)];
-opClass = [ones(50,1);zeros(50,1)];
 
